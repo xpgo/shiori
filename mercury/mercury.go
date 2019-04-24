@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -74,7 +76,7 @@ func formatUrl(URL string) string {
 		apiURL = "http://localhost:3000"
 	}
 	apiURL += "/parser?url=%s"
-	return fmt.Sprintf(API_URL, url.QueryEscape(URL))
+	return fmt.Sprintf(apiURL, url.QueryEscape(URL))
 }
 
 func decodeToDocument(r io.Reader) (*MercuryDocument, error) {
