@@ -1,6 +1,7 @@
-# copy declearation
+# copy declaration
 
 This project is forked from [Shiori](https://github.com/RadhiFadlillah/shiori) created by RadhiFadlillah.
+Try to use self-hosted mercury for page render.
 
 # Shiori
 
