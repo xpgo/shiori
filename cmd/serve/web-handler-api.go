@@ -354,7 +354,7 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 			// use mercury
 			doc, err := mercury.ParseEx(book.URL)
 
-			book.Excerpt = adoc.Excerpt
+			book.Excerpt = doc.Excerpt
 			book.Author = doc.Author
 			book.MinReadTime = article.Meta.MinReadTime
 			book.MaxReadTime = article.Meta.MaxReadTime
