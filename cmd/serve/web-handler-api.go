@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/xpgo/shiori/model"
 	"github.com/xpgo/shiori/readability"
 	"github.com/xpgo/shiori/mercury"
@@ -128,17 +129,28 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 
 	// Fetch data from internet
 	article, err := readability.FromURL(parsedURL, 20*time.Second)
+
+	// use mercury
 	c := &mercury.MercuryConfig{
 		ApiKey: "GkDAIi9TVIqeJXbpdQhWgA3X8DuxXfrDy2dGICc0",
 	}
 	client := mercury.New(c)
-	doc, err := client.Parse(parsedURL)
+	doc, err := client.Parse(book.URL)
+	// for image width
+	doc_pro, _ := goquery.NewDocumentFromReader(strings.NewReader(doc.Content))
+	doc_pro.Find("img").Each(func(i int, s *goquery.Selection) {
+		img_width, _ := s.Attr("width")
+		if strings.Contains(img_width, "px") {
+			s.SetAttr("width", "100%")
+		}
+	})
+	content_pro, _ := doc_pro.Html()
 
 	book.Author = doc.Author
 	book.MinReadTime = article.Meta.MinReadTime
 	book.MaxReadTime = article.Meta.MaxReadTime
-	book.Content = doc.Content
-	book.HTML = doc.Content
+	book.Content = content_pro
+	book.HTML = content_pro
 
 	// If title and excerpt doesnt have submitted value, use from article
 	if book.Title == "" {
@@ -353,12 +365,28 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 				return
 			}
 
+			// use mercury
+			c := &mercury.MercuryConfig{
+				ApiKey: "GkDAIi9TVIqeJXbpdQhWgA3X8DuxXfrDy2dGICc0",
+			}
+			client := mercury.New(c)
+			doc, err := client.Parse(book.URL)
+			// for image width
+			doc_pro, _ := goquery.NewDocumentFromReader(strings.NewReader(doc.Content))
+			doc_pro.Find("img").Each(func(i int, s *goquery.Selection) {
+				img_width, _ := s.Attr("width")
+				if strings.Contains(img_width, "px") {
+					s.SetAttr("width", "100%")
+				}
+			})
+			content_pro, _ := doc_pro.Html()
+
 			book.Excerpt = article.Meta.Excerpt
 			book.Author = article.Meta.Author
 			book.MinReadTime = article.Meta.MinReadTime
 			book.MaxReadTime = article.Meta.MaxReadTime
-			book.Content = article.Content
-			book.HTML = article.RawContent
+			book.Content = content_pro
+			book.HTML = content_pro
 
 			// Make sure title is not empty
 			if article.Meta.Title != "" {
