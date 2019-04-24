@@ -141,8 +141,7 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	doc_pro, _ := goquery.NewDocumentFromReader(strings.NewReader(doc.Content))
 	doc_pro.Find("img").Each(func(i int, s *goquery.Selection) {
 		s.SetAttr("max-width", "100%")
-		s.SetAttr("width", "")
-		s.SetAttr("alt width", "100%")
+		s.SetAttr("width", "100%")
 	})
 	content_pro, _ := doc_pro.Html()
 
@@ -376,8 +375,7 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 			doc_pro, _ := goquery.NewDocumentFromReader(strings.NewReader(doc.Content))
 			doc_pro.Find("img").Each(func(i int, s *goquery.Selection) {
 				s.SetAttr("max-width", "100%")
-				s.SetAttr("width", "")
-				s.SetAttr("alt width", "100%")
+				s.SetAttr("width", "100%")
 			})
 			content_pro, _ := doc_pro.Html()
 
