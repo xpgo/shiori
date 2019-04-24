@@ -14,6 +14,7 @@ import (
 
 	"github.com/xpgo/shiori/model"
 	"github.com/xpgo/shiori/readability"
+	"github.com/xpgo/shiori/mercury"
 	valid "github.com/asaskevich/govalidator"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
@@ -126,21 +127,26 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	checkError(err)
 
 	// Fetch data from internet
-	article, _ := readability.FromURL(parsedURL, 20*time.Second)
+	article, err := readability.FromURL(parsedURL, 20*time.Second)
+	c := &mercury.MercuryConfig{
+		ApiKey: "GkDAIi9TVIqeJXbpdQhWgA3X8DuxXfrDy2dGICc0",
+	}
+	client := mercury.New(c)
+	doc, err := client.Parse(parsedURL)
 
-	book.Author = article.Meta.Author
+	book.Author = doc.Author
 	book.MinReadTime = article.Meta.MinReadTime
 	book.MaxReadTime = article.Meta.MaxReadTime
-	book.Content = article.Content
-	book.HTML = article.RawContent
+	book.Content = doc.Content
+	book.HTML = doc.Content
 
 	// If title and excerpt doesnt have submitted value, use from article
 	if book.Title == "" {
-		book.Title = article.Meta.Title
+		book.Title = doc.Title
 	}
 
 	if book.Excerpt == "" {
-		book.Excerpt = article.Meta.Excerpt
+		book.Excerpt = doc.Excerpt
 	}
 
 	// Make sure title is not empty
