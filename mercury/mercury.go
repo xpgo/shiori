@@ -84,11 +84,9 @@ func ParseEx(URL string) (*MercuryDocument, error) {
 	// fix for some websites
 	doc_fix, _ := goquery.NewDocumentFromReader(strings.NewReader(doc.Content))
 	doc_fix.Find("img").Each(func(i int, s *goquery.Selection) {
-		img_width, width_exists := s.Attr("width")
-		if width_exists {
-			if ! strings.Contains(img_width, "%") {
-				s.SetAttr("width", "100%")
-			}
+		class_tag := s.HasClass("tagsPic")
+		if ! class_tag {
+			s.SetAttr("width", "100%")
 		}
 		s.SetAttr("max-width", "100%")
 	})
