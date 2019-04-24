@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/RadhiFadlillah/shiori/model"
+	"github.com/xpgo/shiori/model"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
 )
