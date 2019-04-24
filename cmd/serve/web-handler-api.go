@@ -12,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/xpgo/shiori/model"
 	"github.com/xpgo/shiori/readability"
 	"github.com/xpgo/shiori/mercury"
@@ -131,25 +130,13 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	article, err := readability.FromURL(parsedURL, 20*time.Second)
 
 	// use mercury
-	apiKey := os.Getenv("MERCURY_KEY")
-	c := &mercury.MercuryConfig{
-		ApiKey: apiKey,
-	}
-	client := mercury.New(c)
-	doc, err := client.Parse(book.URL)
-	// for image width
-	doc_pro, _ := goquery.NewDocumentFromReader(strings.NewReader(doc.Content))
-	doc_pro.Find("img").Each(func(i int, s *goquery.Selection) {
-		s.SetAttr("max-width", "100%")
-		s.SetAttr("width", "100%")
-	})
-	content_pro, _ := doc_pro.Html()
+	doc, err := mercury.ParseEx(book.URL)
 
 	book.Author = doc.Author
 	book.MinReadTime = article.Meta.MinReadTime
 	book.MaxReadTime = article.Meta.MaxReadTime
-	book.Content = content_pro
-	book.HTML = content_pro
+	book.Content = doc.Content
+	book.HTML = doc.Content
 
 	// If title and excerpt doesnt have submitted value, use from article
 	if book.Title == "" {
@@ -365,26 +352,14 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 			}
 
 			// use mercury
-			apiKey := os.Getenv("MERCURY_KEY")
-			c := &mercury.MercuryConfig{
-				ApiKey: apiKey,
-			}
-			client := mercury.New(c)
-			doc, err := client.Parse(book.URL)
-			// for image width
-			doc_pro, _ := goquery.NewDocumentFromReader(strings.NewReader(doc.Content))
-			doc_pro.Find("img").Each(func(i int, s *goquery.Selection) {
-				s.SetAttr("max-width", "100%")
-				s.SetAttr("width", "100%")
-			})
-			content_pro, _ := doc_pro.Html()
+			doc, err := mercury.ParseEx(book.URL)
 
-			book.Excerpt = article.Meta.Excerpt
-			book.Author = article.Meta.Author
+			book.Excerpt = adoc.Excerpt
+			book.Author = doc.Author
 			book.MinReadTime = article.Meta.MinReadTime
 			book.MaxReadTime = article.Meta.MaxReadTime
-			book.Content = content_pro
-			book.HTML = content_pro
+			book.Content = doc.Content
+			book.HTML = doc.Content
 
 			// Make sure title is not empty
 			if article.Meta.Title != "" {

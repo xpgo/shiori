@@ -12,6 +12,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/pkg/errors"
 )
 
@@ -67,6 +68,35 @@ func (c *MercuryClient) Parse(URL string) (*MercuryDocument, error) {
 	}
 	// defer resp.Body.Close()
 	return decodeToDocument(resp.Body)
+}
+
+func ParseEx(URL string) (*MercuryDocument, error) {
+	// set key?
+	apiKey := os.Getenv("MERCURY_KEY")
+	c := &mercury.MercuryConfig{
+		ApiKey: apiKey,
+	}
+
+	// parser
+	client := mercury.New(c)
+	doc, err := client.Parse(URL)
+
+	// fix for some websites
+	doc_fix, _ := goquery.NewDocumentFromReader(strings.NewReader(doc.Content))
+	doc_fix.Find("img").Each(func(i int, s *goquery.Selection) {
+		img_width, width_exists := s.Attr("width")
+		if width_exists {
+			if ! strings.Contains(img_width, "%") {
+				s.SetAttr("width", "100%")
+			}
+		}
+		s.SetAttr("max-width", "100%")
+	})
+	content_fix, _ := doc_fix.Html()
+	doc.Content = content_fix
+
+	// defer resp.Body.Close()
+	return doc, err
 }
 
 func formatUrl(URL string) string {
