@@ -1,4 +1,4 @@
-package gomercury
+package mercury
 
 import (
 	"log"
