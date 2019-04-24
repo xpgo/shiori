@@ -73,12 +73,12 @@ func (c *MercuryClient) Parse(URL string) (*MercuryDocument, error) {
 func ParseEx(URL string) (*MercuryDocument, error) {
 	// set key?
 	apiKey := os.Getenv("MERCURY_KEY")
-	c := &mercury.MercuryConfig{
+	c := &MercuryConfig{
 		ApiKey: apiKey,
 	}
 
 	// parser
-	client := mercury.New(c)
+	client := New(c)
 	doc, err := client.Parse(URL)
 
 	// fix for some websites
