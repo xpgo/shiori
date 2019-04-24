@@ -13,8 +13,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const API_URL = "http://localhost:3000/parser?url=%s"
-
 type MercuryConfig struct {
 	ApiKey string
 	Log    *log.Logger
@@ -70,6 +68,12 @@ func (c *MercuryClient) Parse(URL string) (*MercuryDocument, error) {
 }
 
 func formatUrl(URL string) string {
+	apiURL := ""
+	apiURL += os.Getenv("MERCURY_API")
+	if ! (strings.HasPrefix(apiURL, "http")) {
+		apiURL = "http://localhost:3000"
+	}
+	apiURL += "/parser?url=%s"
 	return fmt.Sprintf(API_URL, url.QueryEscape(URL))
 }
 

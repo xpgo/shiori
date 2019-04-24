@@ -131,8 +131,9 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	article, err := readability.FromURL(parsedURL, 20*time.Second)
 
 	// use mercury
+	apiKey := os.Getenv("MERCURY_KEY")
 	c := &mercury.MercuryConfig{
-		ApiKey: "GkDAIi9TVIqeJXbpdQhWgA3X8DuxXfrDy2dGICc0",
+		ApiKey: apiKey,
 	}
 	client := mercury.New(c)
 	doc, err := client.Parse(book.URL)
@@ -366,8 +367,9 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 			}
 
 			// use mercury
+			apiKey := os.Getenv("MERCURY_KEY")
 			c := &mercury.MercuryConfig{
-				ApiKey: "GkDAIi9TVIqeJXbpdQhWgA3X8DuxXfrDy2dGICc0",
+				ApiKey: apiKey,
 			}
 			client := mercury.New(c)
 			doc, err := client.Parse(book.URL)

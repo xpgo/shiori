@@ -2,6 +2,7 @@
 
 This project is forked from [Shiori](https://github.com/RadhiFadlillah/shiori) created by RadhiFadlillah.
 Try to use self-hosted mercury for page render.
+use env MERCURY_KEY and MERCURY_API if you want to set it.
 
 # Shiori
 
