@@ -1,8 +1,12 @@
-# copy declaration
+# Copy declaration
 
 This project is forked from [Shiori](https://github.com/RadhiFadlillah/shiori) created by RadhiFadlillah.
-Try to use self-hosted mercury for page render.
-use env MERCURY_KEY and MERCURY_API if you want to set it.
+
+Currently, the main changes include: 
+
+1. Since Mercury has open-sourced, I try to use self-hosted Mercury for page rendering which shows images in each cached page.
+2. Use env MERCURY_KEY and MERCURY_API if you want to change the Mercury API.
+3. Changed some css style for better mobile read. (Change css: modify lss, lessc xx xx, go run assets-generator.go)
 
 # Shiori
 
