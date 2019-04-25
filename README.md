@@ -7,6 +7,7 @@ Currently, the main changes include:
 1. Since Mercury has open-sourced, I try to use self-hosted Mercury for page rendering which shows images in each cached page.
 2. Use env MERCURY_KEY and MERCURY_API if you want to change the Mercury API.
 3. Changed some css style for better mobile read. (Change css: modify lss, lessc xx xx, go run assets-generator.go)
+4. Auto hide bookmarks with tag "archive"
 
 # Shiori
 
