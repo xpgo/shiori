@@ -130,6 +130,9 @@
                         <a title="Edit bookmark" @click="showDialogEdit(idx)">
                             <i class="fas fa-pencil-alt"></i>
                         </a>
+                        <a title="Archive bookmark" @click="addArchiveTag([idx])">
+                            <i class="fas fa-archive"></i>
+                        </a>
                         <a title="Delete bookmark" @click="showDialogDelete([idx])">
                             <i class="fas fa-trash-alt"></i>
                         </a>
@@ -668,6 +671,59 @@
                                 });
                         }
                     });
+                },
+                addArchiveTag(indices) {
+                    // Check and prepare indices
+                    if (!(indices instanceof Array)) return;
+                    if (indices.length === 0) return;
+                    indices.sort();
+
+                    // Set real indices value
+                    indices = indices.map(item => item + this.page * pageSize)
+
+                    // Get list of bookmark ID
+                    var listID = [];
+                    for (var i = 0; i < indices.length; i++) {
+                        listID.push(this.bookmarks[indices[i]].id);
+                    }
+
+                    // set archive tag
+                    var old_tags = 'archive';
+                    var tags = old_tags
+                        .toLowerCase()
+                        .replace(/\s+/g, ' ')
+                        .split(/\s*,\s*/g)
+                        .filter(tag => tag !== '')
+                        .map(tag => {
+                            return {
+                                name: tag
+                            };
+                        });
+                    rest.put('/api/bookmarks/tags', {
+                            ids: listID,
+                            tags: tags,
+                        })
+                        .then((response) => {
+                            this.selected = [];
+                            this.editMode = false;
+                            this.dialog.loading = false;
+                            this.dialog.visible = false;
+
+                            response.data.forEach(book => {
+                                for (var i = 0; i < indices.length; i++) {
+                                    var idx = indices[i];
+                                    if (book.id === this.bookmarks[idx].id) {
+                                        this.bookmarks.splice(idx, 1, book);
+                                        break;
+                                    }
+                                }
+                            });
+                        })
+                        .catch((error) => {
+                            var errorMsg = (error.response ? error.response.data : error.message).trim();
+                            if (errorMsg.startsWith('Token error')) this.showDialogSessionExpired(errorMsg);
+                            else this.showErrorDialog(errorMsg);
+                        });
                 },
                 showDialogTags() {
                     this.dialogTags.visible = true;
