@@ -80,31 +80,23 @@ func (h *webHandler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps 
 
 	// filter archive
 	keyword0 := strings.TrimSpace(keyword)
-	if len(keyword0) == 0 {
-		hasArchive := false
-		for _, tag := range tags {
-			if tag == "archive" {
-				hasArchive = true
-				break
-			}
-		}
-		if ! hasArchive {
-			bookmarks0 := []model.Bookmark{}
-			for i := range bookmarks {
-				isArchive := false
-				bTags := bookmarks[i].Tags
-				for t := range bTags {
-					if bTags[t].Name == "archive" {
-						isArchive = true
-						break
-					}
-				}
-				if ! isArchive {
-					bookmarks0 = append(bookmarks0, bookmarks[i])
+	strTags0 := strings.TrimSpace(strTags)
+	if (len(keyword0) == 0) && (len(strTags0) == 0) {
+		bookmarks0 := []model.Bookmark{}
+		for i := range bookmarks {
+			isArchive := false
+			bTags := bookmarks[i].Tags
+			for t := range bTags {
+				if bTags[t].Name == "archive" {
+					isArchive = true
+					break
 				}
 			}
-			bookmarks = bookmarks0
+			if ! isArchive {
+				bookmarks0 = append(bookmarks0, bookmarks[i])
+			}
 		}
+		bookmarks = bookmarks0
 	}
 
 	err = json.NewEncoder(w).Encode(&bookmarks)
