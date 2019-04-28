@@ -459,6 +459,10 @@
                             type: 'area',
                             value: book.excerpt,
                         }, {
+                            name: 'imageURL',
+                            label: 'Image',
+                            value: book.imageURL,
+                        }, {
                             name: 'tags',
                             label: 'Tags',
                             value: strTags,
@@ -485,6 +489,7 @@
                             book.title = data.title.trim();
                             book.excerpt = data.excerpt.trim();
                             book.tags = tags;
+                            book.imageURL = data.imageURL.trim();
 
                             // Send data
                             this.dialog.loading = true;

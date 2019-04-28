@@ -78,29 +78,32 @@ func (h *webHandler) apiGetBookmarks(w http.ResponseWriter, r *http.Request, ps 
 	checkError(err)
 
 	// filter archive
-	hasArchive := false
-	for _, tag := range tags {
-        if tag == "archive" {
-            hasArchive = true
-			break
-        }
-    }
-	if ! hasArchive {
-		bookmarks0 := []model.Bookmark{}
-		for i := range bookmarks {
-			isArchive := false
-			bTags := bookmarks[i].Tags
-			for t := range bTags {
-				if bTags[t].Name == "archive" {
-					isArchive = true
-					break
-				}
-			}
-			if ! isArchive {
-				bookmarks0 = append(bookmarks0, bookmarks[i])
+	keyword0 := strings.TrimSpace(keyword)
+	if len(keyword0) == 0 {
+		hasArchive := false
+		for _, tag := range tags {
+			if tag == "archive" {
+				hasArchive = true
+				break
 			}
 		}
-		bookmarks = bookmarks0
+		if ! hasArchive {
+			bookmarks0 := []model.Bookmark{}
+			for i := range bookmarks {
+				isArchive := false
+				bTags := bookmarks[i].Tags
+				for t := range bTags {
+					if bTags[t].Name == "archive" {
+						isArchive = true
+						break
+					}
+				}
+				if ! isArchive {
+					bookmarks0 = append(bookmarks0, bookmarks[i])
+				}
+			}
+			bookmarks = bookmarks0
+		}
 	}
 
 	err = json.NewEncoder(w).Encode(&bookmarks)
@@ -154,23 +157,30 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 
 	// Fetch data from internet
 	article, err := readability.FromURL(parsedURL, 20*time.Second)
-
-	// use mercury
-	doc, err := mercury.ParseEx(book.URL)
-
-	book.Author = doc.Author
+	book.Author = article.Meta.Author
 	book.MinReadTime = article.Meta.MinReadTime
 	book.MaxReadTime = article.Meta.MaxReadTime
-	book.Content = doc.Content
-	book.HTML = doc.Content
+	book.Content = article.Content
+	book.HTML = article.RawContent
+	leadImageURL := article.Meta.Image
+
+	// try to use mercury
+	doc, err := mercury.ParseEx(book.URL)
+	if err == nil {
+		book.Excerpt = doc.Excerpt
+		book.Author = doc.Author
+		book.Content = doc.Content
+		book.HTML = doc.Content
+		leadImageURL = doc.LeadImageURL
+	}
 
 	// If title and excerpt doesnt have submitted value, use from article
 	if book.Title == "" {
-		book.Title = doc.Title
+		book.Title = article.Meta.Title
 	}
 
 	if book.Excerpt == "" {
-		book.Excerpt = doc.Excerpt
+		book.Excerpt = article.Meta.Excerpt
 	}
 
 	// Make sure title is not empty
@@ -185,7 +195,7 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 
 	// Save bookmark image to local disk
 	imgPath := fp.Join(h.dataDir, "thumb", fmt.Sprintf("%d", book.ID))
-	err = downloadFile(article.Meta.Image, imgPath, 20*time.Second)
+	err = downloadFile(leadImageURL, imgPath, 20*time.Second)
 	if err == nil {
 		book.ImageURL = fmt.Sprintf("/thumb/%d", book.ID)
 	}
@@ -272,6 +282,18 @@ func (h *webHandler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, p
 
 		if newTag.ID == 0 {
 			book.Tags = append(book.Tags, newTag)
+		}
+	}
+
+	// Set new image url
+	oldImageURL := book.ImageURL
+	newImageURL := request.ImageURL
+	if ((len(newImageURL) != 0) && (newImageURL != oldImageURL)) {
+		// Update bookmark image in local disk
+		imgPath := fp.Join(h.dataDir, "thumb", fmt.Sprintf("%d", book.ID))
+		err = downloadFile(newImageURL, imgPath, 20*time.Second)
+		if err == nil {
+			book.ImageURL = fmt.Sprintf("/thumb/%d", book.ID)
 		}
 	}
 
@@ -377,15 +399,23 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 				return
 			}
 
-			// use mercury
-			doc, err := mercury.ParseEx(book.URL)
-
-			book.Excerpt = doc.Excerpt
-			book.Author = doc.Author
+			book.Excerpt = article.Meta.Excerpt
+			book.Author = article.Meta.Author
 			book.MinReadTime = article.Meta.MinReadTime
 			book.MaxReadTime = article.Meta.MaxReadTime
-			book.Content = doc.Content
-			book.HTML = doc.Content
+			book.Content = article.Content
+			book.HTML = article.RawContent
+			leadImageURL := article.Meta.Image
+
+			// try to use mercury
+			doc, err := mercury.ParseEx(book.URL)
+			if err == nil {
+				book.Excerpt = doc.Excerpt
+				book.Author = doc.Author
+				book.Content = doc.Content
+				book.HTML = doc.Content
+				leadImageURL = doc.LeadImageURL
+			}
 
 			// Make sure title is not empty
 			if article.Meta.Title != "" {
@@ -399,7 +429,7 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 
 			// Update bookmark image in local disk
 			imgPath := fp.Join(h.dataDir, "thumb", fmt.Sprintf("%d", book.ID))
-			err = downloadFile(article.Meta.Image, imgPath, 20*time.Second)
+			err = downloadFile(leadImageURL, imgPath, 20*time.Second)
 			if err == nil {
 				book.ImageURL = fmt.Sprintf("/thumb/%d", book.ID)
 			}
