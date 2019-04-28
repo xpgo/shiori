@@ -9,6 +9,7 @@ Currently, the main changes include:
 3. Changed some css style for better mobile read. (Change css: modify lss, lessc xx xx, go run assets-generator.go)
 4. Add archive button for each bookmark and auto hide bookmarks with tag "archive"
 5. Support search with chinese character
+6. customize leading image url
 
 # Shiori
 
