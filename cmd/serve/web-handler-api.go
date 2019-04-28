@@ -19,6 +19,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/disintegration/imaging"
 )
 
 // login is handler for POST /api/login
@@ -198,6 +199,7 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	err = downloadFile(leadImageURL, imgPath, 20*time.Second)
 	if err == nil {
 		book.ImageURL = fmt.Sprintf("/thumb/%d", book.ID)
+		resizeThumbImage(imgPath, 320)
 	}
 
 	// Save bookmark to database
@@ -294,6 +296,7 @@ func (h *webHandler) apiUpdateBookmark(w http.ResponseWriter, r *http.Request, p
 		err = downloadFile(newImageURL, imgPath, 20*time.Second)
 		if err == nil {
 			book.ImageURL = fmt.Sprintf("/thumb/%d", book.ID)
+			resizeThumbImage(imgPath, 320)
 		}
 	}
 
@@ -432,6 +435,7 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 			err = downloadFile(leadImageURL, imgPath, 20*time.Second)
 			if err == nil {
 				book.ImageURL = fmt.Sprintf("/thumb/%d", book.ID)
+				resizeThumbImage(imgPath, 320)
 			}
 
 			// Update list of bookmarks
@@ -482,6 +486,21 @@ func downloadFile(url, dstPath string, timeout time.Duration) error {
 	}
 
 	return nil
+}
+
+func resizeThumbImage(dstPath string, max_width int) {
+	// Open a test image.
+	src, err := imaging.Open(dstPath)
+	if err == nil {
+		if src.Bounds().Dx() < max_width {
+			return
+		}
+		src = imaging.Resize(src, max_width, 0, imaging.Lanczos)
+		err = imaging.Save(src, dstPath + ".png")
+		if err == nil {
+			err =  os.Rename(dstPath + ".png", dstPath)
+		}
+	}
 }
 
 func clearUTMParams(url *nurl.URL) {
