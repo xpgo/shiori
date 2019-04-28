@@ -11,6 +11,8 @@ import (
 	"os"
 	fp "path/filepath"
 	"strconv"
+	"strings"
+	"bytes"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -92,6 +94,43 @@ func (h *webHandler) serveBookmarkCache(w http.ResponseWriter, r *http.Request, 
 	// Execute template
 	strBt := string(bt)
 	err = tplCache.Execute(w, &strBt)
+	checkError(err)
+}
+
+// serveSearchPage is handler for GET /search?tag=test&keyword=rss
+func (h *webHandler) serveSearchPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// There may be simple way to do this, but I don't know how, I am new to golang
+	queryValues := r.URL.Query()
+	tag := queryValues.Get("tag")
+	keyword := queryValues.Get("keyword")
+	serachText := "search: '"
+	if tag != "" {
+		tag = strings.Replace(tag, ",", " #", -1)
+		serachText += "#" + tag + " "
+	}
+	if keyword != "" {
+		serachText += keyword
+	}
+	serachText += "',"
+	
+	// Open file
+	path := "index.html"
+	src, err := assets.Open(path)
+	checkError(err)
+	defer src.Close()
+
+	// Get content type
+	ext := fp.Ext(path)
+	mimeType := mime.TypeByExtension(ext)
+	if mimeType != "" {
+		w.Header().Set("Content-Type", mimeType)
+	}
+
+	// Serve file
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(src)
+	content := strings.Replace(buf.String(), "search: '',", serachText, 1)
+	_, err = io.Copy(w, strings.NewReader(content))
 	checkError(err)
 }
 
