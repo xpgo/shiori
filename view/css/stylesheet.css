@@ -681,6 +681,11 @@ body {
 #cache-page #body #content a:focus {
   color: var(--main);
 }
+#cache-page #body #content img {
+  display: block;
+  max-width: 100%;
+  margin: 0 auto;
+}
 #cache-page #body #content pre,
 #cache-page #body #content code {
   overflow: auto;
