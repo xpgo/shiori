@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/xpgo/shiori/model"
-	"github.com/xpgo/shiori/readability"
+	// "github.com/xpgo/shiori/readability"
 	"github.com/xpgo/shiori/mercury"
 	valid "github.com/asaskevich/govalidator"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -135,7 +135,7 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 
 	// Make sure URL valid
 	parsedURL, err := nurl.Parse(book.URL)
-	if err != nil || !valid.IsRequestURL(book.URL) {
+	if err != nil || !valid.IsURL(book.URL) {
 		panic(fmt.Errorf("URL is not valid"))
 	}
 
@@ -149,31 +149,21 @@ func (h *webHandler) apiInsertBookmark(w http.ResponseWriter, r *http.Request, p
 	checkError(err)
 
 	// Fetch data from internet
-	article, err := readability.FromURL(parsedURL, 20*time.Second)
-	book.Author = article.Meta.Author
-	book.MinReadTime = article.Meta.MinReadTime
-	book.MaxReadTime = article.Meta.MaxReadTime
-	book.Content = article.Content
-	book.HTML = article.RawContent
-	leadImageURL := article.Meta.Image
-
-	// try to use mercury
 	doc, err := mercury.ParseEx(book.URL)
-	if err == nil {
-		book.Excerpt = doc.Excerpt
-		book.Author = doc.Author
-		book.Content = doc.Content
-		book.HTML = doc.Content
-		leadImageURL = doc.LeadImageURL
-	}
+	book.Author = doc.Author
+	book.MinReadTime = int(float64(doc.WordCount) / 200.0)
+	book.MaxReadTime = int(float64(doc.WordCount) / 100.0)
+	book.Content = doc.Content
+	book.HTML = doc.Content
+	leadImageURL := doc.LeadImageURL
 
 	// If title and excerpt doesnt have submitted value, use from article
 	if book.Title == "" {
-		book.Title = article.Meta.Title
+		book.Title = doc.Title
 	}
 
 	if book.Excerpt == "" {
-		book.Excerpt = article.Meta.Excerpt
+		book.Excerpt = doc.Excerpt
 	}
 
 	// Make sure title is not empty
@@ -384,37 +374,27 @@ func (h *webHandler) apiUpdateCache(w http.ResponseWriter, r *http.Request, ps h
 
 			// Parse URL
 			parsedURL, err := nurl.Parse(book.URL)
-			if err != nil || !valid.IsRequestURL(book.URL) {
+			if err != nil || !valid.IsURL(book.URL) {
 				return
 			}
 
-			// Fetch data from internet
-			article, err := readability.FromURL(parsedURL, 20*time.Second)
+			// try to use mercury
+			doc, err := mercury.ParseEx(parsedURL.String())
 			if err != nil {
 				return
 			}
 
-			book.Excerpt = article.Meta.Excerpt
-			book.Author = article.Meta.Author
-			book.MinReadTime = article.Meta.MinReadTime
-			book.MaxReadTime = article.Meta.MaxReadTime
-			book.Content = article.Content
-			book.HTML = article.RawContent
-			leadImageURL := article.Meta.Image
-
-			// try to use mercury
-			doc, err := mercury.ParseEx(book.URL)
-			if err == nil {
-				book.Excerpt = doc.Excerpt
-				book.Author = doc.Author
-				book.Content = doc.Content
-				book.HTML = doc.Content
-				leadImageURL = doc.LeadImageURL
-			}
+			book.Author = doc.Author
+			book.Excerpt = doc.Excerpt
+			book.MinReadTime = int(float64(doc.WordCount) / 200.0)
+			book.MaxReadTime = int(float64(doc.WordCount) / 100.0)
+			book.Content = doc.Content
+			book.HTML = doc.Content
+			leadImageURL := doc.LeadImageURL
 
 			// Make sure title is not empty
-			if article.Meta.Title != "" {
-				book.Title = article.Meta.Title
+			if doc.Title != "" {
+				book.Title = doc.Title
 			}
 
 			// Check if book has content

@@ -14,6 +14,7 @@ import (
 
 	// "github.com/PuerkitoBio/goquery"
 	"github.com/pkg/errors"
+	// "github.com/sirupsen/logrus"
 )
 
 type MercuryConfig struct {
@@ -80,6 +81,8 @@ func ParseEx(URL string) (*MercuryDocument, error) {
 	// parser
 	client := New(c)
 	doc, err := client.Parse(URL)
+
+	// logrus.Infoln("Hello ", doc.URL)
 
 	// defer resp.Body.Close()
 	return doc, err
