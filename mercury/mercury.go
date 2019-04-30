@@ -12,7 +12,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/PuerkitoBio/goquery"
+	// "github.com/PuerkitoBio/goquery"
 	"github.com/pkg/errors"
 )
 
@@ -80,31 +80,6 @@ func ParseEx(URL string) (*MercuryDocument, error) {
 	// parser
 	client := New(c)
 	doc, err := client.Parse(URL)
-
-	// fix code blocks (mercury will clean code blocks)
-	doc_raw, _ := goquery.NewDocument(URL)
-	doc_fix, _ := goquery.NewDocumentFromReader(strings.NewReader(doc.Content))
-	codeRawTags := []*goquery.Selection{}
-	doc_raw.Find("code").Each(func(i int, s *goquery.Selection) {
-		codeRawTags = append(codeRawTags, s)
-	})
-
-	iCodeTag := 0
-	doc_fix.Find("code").Each(func(i int, s *goquery.Selection) {
-		s.ReplaceWithSelection(codeRawTags[iCodeTag])
-		iCodeTag += 1
-	})
-
-	// fix some image position
-	doc_fix.Find("img").Each(func(i int, s *goquery.Selection) {
-		if s.HasClass("tagsPic") {
-			s.SetAttr("style", "margin: 0;")
-		}
-	})
-
-	// store
-	content_fix, _ := doc_fix.Html()
-	doc.Content = content_fix
 
 	// defer resp.Body.Close()
 	return doc, err
